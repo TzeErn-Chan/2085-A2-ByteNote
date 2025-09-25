@@ -1,5 +1,7 @@
 from processing_line import Transaction
 from data_structures import ArrayR
+from data_structures.hash_table_linear_probing import LinearProbeTable
+from data_structures.array_sorted_list import ArraySortedList
 
 
 class FraudDetection:
@@ -8,12 +10,87 @@ class FraudDetection:
 
     def detect_by_blocks(self):
         """
-        Analyse your time complexity of this method.
+        Time complexity: O(N * L^2), where N is the number of transactions, L is the length of signatures, due to iterating over S and building keys.
         """
-        pass
+        if len(self.transactions) == 0:
+            return 1, 1
+        L = len(str(self.transactions[0].signature))
+        max_product = 1
+        best_S = 1
+        for S in range(1, L + 1):
+            groups = ArrayR(len(self.transactions))
+            index = 0
+            for tr in self.transactions:
+                sig = str(tr.signature)
+                blocks = ArraySortedList()
+                for i in range(0, len(sig) - (len(sig) % S), S):
+                    blocks.add(sig[i:i + S])
+                remainder = sig[len(sig) - (len(sig) % S):]
+                key = ''.join(blocks) + remainder
+                found = False
+                for i in range(index):
+                    if groups[i][0] == key:
+                        groups[i] = (key, groups[i][1] + 1)
+                        found = True
+                        break
+                if not found:
+                    groups[index] = (key, 1)
+                    index += 1
+            product = 1
+            for i in range(index):
+                product *= groups[i][1]
+            if product > max_product:
+                max_product = product
+                best_S = S
+        return best_S, max_product
 
     def rectify(self, functions):
-        pass
+        """
+        Time complexity: O(F * N^2 + F * N * M), where F is the number of functions, N is the number of transactions, M is the table size, due to sorting and probing.
+        """
+        def sort_array(arr, reverse=False):
+            n = len(arr)
+            for i in range(n):
+                for j in range(0, n - i - 1):
+                    if (arr[j] > arr[j + 1]) if not reverse else (arr[j] < arr[j + 1]):
+                        arr[j], arr[j + 1] = arr[j + 1], arr[j]
+        
+        best_function = None
+        min_mpcl = float('inf')
+        for func in functions:
+            hashes = ArrayR(len(self.transactions))
+            i = 0
+            for tr in self.transactions:
+                hashes[i] = func(tr)
+                i += 1
+            if len(hashes) == 0:
+                continue
+            sort_array(hashes, reverse=True)
+            M = max(hashes) + 1
+            occupied = LinearProbeTable()
+            max_probe = 0
+            for idx in range(len(hashes)):
+                h = hashes[idx]
+                count = 0
+                current = h
+                while True:
+                    try:
+                        if occupied[str(current)] is not None:
+                            count += 1
+                            current = (current + 1) % M
+                        else:
+                            break
+                    except KeyError:
+                        break
+                    if count >= M:
+                        break
+                probe = count
+                max_probe = max(max_probe, probe)
+                occupied[str(h)] = True
+            if max_probe < min_mpcl:
+                min_mpcl = max_probe
+                best_function = func
+        return best_function, min_mpcl
 
 
 if __name__ == "__main__":
