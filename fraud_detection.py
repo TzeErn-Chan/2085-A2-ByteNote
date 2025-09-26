@@ -10,8 +10,6 @@ class FraudDetection:
         Time complexity:
         best: O(1)
         worst: O(1)
-        Justification: We keep a direct reference to the provided `ArrayR` of
-        transactions so later analyses can reuse it without copying.
         """
         self.transactions = transactions
 
