@@ -14,6 +14,7 @@ class ProcessingBook:
     
     def page_index(self, character):
         """
+        Time complexity: O(1)
         You may find this method helpful. It takes a character and returns the index of the relevant page.
         Time complexity of this method is O(1), because it always only checks 36 characters.
         """
@@ -21,7 +22,7 @@ class ProcessingBook:
     
     def __setitem__(self, transaction, amount):
         """
-        Time complexity: O(L), where L is the length of the signature, due to recursive traversal.
+        Time complexity: O(n), where n is the length of the signature, due to recursive traversal.
         """
         sig = transaction.signature
         idx = self.page_index(sig[self.level])
@@ -51,7 +52,7 @@ class ProcessingBook:
     
     def __getitem__(self, transaction):
         """
-        Time complexity: O(L), where L is the length of the signature.
+        Time complexity: O(n), where n is the length of the signature.
         """
         sig = transaction.signature
         idx = self.page_index(sig[self.level])
@@ -69,7 +70,7 @@ class ProcessingBook:
     
     def __delitem__(self, transaction):
         """
-        Time complexity: O(L), where L is the length of the signature.
+        Time complexity: O(n), where n is the length of the signature.
         """
         sig = transaction.signature
         idx = self.page_index(sig[self.level])

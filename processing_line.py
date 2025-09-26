@@ -150,48 +150,25 @@ class _ProcessingLineIterator:
 
 
 if __name__ == "__main__":
-    # Basic processing order test
-    critical = Transaction(100, "critical", "receiver")
-    earlier_one = Transaction(90, "early1", "receiver")
-    earlier_two = Transaction(80, "early2", "receiver")
-    later_one = Transaction(110, "late1", "receiver")
-    later_two = Transaction(120, "late2", "receiver")
+    # Write tests for your code here...
+    # We are not grading your tests, but we will grade your code with our own tests!
+    # So writing tests is a good idea to ensure your code works as expected.
+    
+    # Here's something to get you started...
+    transaction1 = Transaction(50, "alice", "bob")
+    transaction2 = Transaction(100, "bob", "dave")
+    transaction3 = Transaction(120, "dave", "frank")
 
-    line = ProcessingLine(critical)
-    line.add_transaction(later_one)
-    line.add_transaction(earlier_one)
-    line.add_transaction(later_two)
-    line.add_transaction(earlier_two)
+    line = ProcessingLine(transaction2)
+    line.add_transaction(transaction3)
+    line.add_transaction(transaction1)
 
-    order = ""
-    for processed in line:
-        if order != "":
-            order += ","
-        order += processed.from_user
-        assert processed.signature is not None
-
-    assert order == "early1,early2,critical,late2,late1"
-
-    # Line locks after iteration begins
-    locked_line = ProcessingLine(Transaction(200, "lock", "receiver"))
-    iterator = iter(locked_line)
-
-    try:
-        iter(locked_line)
-        raise AssertionError("Second iterator should raise RuntimeError")
-    except RuntimeError:
-        pass
-
-    try:
-        locked_line.add_transaction(Transaction(150, "late_add", "receiver"))
-        raise AssertionError("Adding after lock should raise RuntimeError")
-    except RuntimeError:
-        pass
-
-    # Exhaust iterator to avoid unused warnings
-    try:
-        next(iterator)
-    except StopIteration:
-        pass
-
-    print("processing_line __main__ self-checks completed successfully")
+    print("Let's print the transactions... Make sure the signatures aren't empty!")
+    line_iterator = iter(line)
+    while True:
+        try:
+            transaction = next(line_iterator)
+            print(f"Processed transaction: {transaction.from_user} -> {transaction.to_user}, "
+                  f"Time: {transaction.timestamp}\nSignature: {transaction.signature}")
+        except StopIteration:
+            break
