@@ -19,14 +19,15 @@ class Transaction:
     
     def sign(self):
         """
-        Time complexity: O(u + v + t), where u, v, and t are the lengths of the
-        sender username, receiver username, and timestamp (as a string).
-
-        Builds a deterministic 36-character base-36 signature (36^36 ≈ 10^56
-        span) so the space of possible hashes meets the assignment threshold.
-        Timestamp and usernames (length plus characters) are folded with large
-        odd multipliers to diffuse input bits before we map them into the
-        base-36 alphabet.
+        Time complexity:
+        best: O(u + v + t)
+        worst: O(u + v + t)
+        Justification: We fold each character of the sender and receiver names
+        and every digit of the timestamp string exactly once into a rolling
+        36-bit style hash, guaranteeing a 36-character base-36 signature. The
+        fixed-length signature (36^36 span) ensures negligible collision risk
+        while the rolling hash never stores the raw data beyond the running
+        integer.
         """
         hashed_value = Transaction._SEED ^ self.timestamp
         hashed_value *= Transaction._MULTIPLIER_A
@@ -74,16 +75,13 @@ class Transaction:
 class ProcessingLine:
     def __init__(self, critical_transaction):
         """
-        Time complexity: O(1).
-
-        We keep transactions that must appear before the critical entry in a
-        LinkedQueue so they are served in first-in/first-out order, meaning the
-        oldest addition is processed furthest from the critical transaction.
-        Transactions that occur after the critical timestamp live in a
-        LinkedStack so the most recently enqueued entry is popped first and sits
-        closest to the critical transaction. Both ADTs give O(1) append/push and
-        serve/pop, matching the constant-time insert requirement while hiding
-        stored transactions from random access.
+        Time complexity:
+        best: O(1)
+        worst: O(1)
+        Justification: A `LinkedQueue` buffers pre-critical transactions in FIFO
+        order and a `LinkedStack` buffers post-critical transactions in LIFO
+        order, so both insertions and removals are constant time without
+        exposing random-access mutation of the stored transactions.
         """
         self._critical_transaction = critical_transaction
         self._before_queue = LinkedQueue()
@@ -92,11 +90,13 @@ class ProcessingLine:
 
     def add_transaction(self, transaction):
         """
-        Time complexity: O(1).
-
-        By partitioning into a queue and stack we guarantee constant-time adds
-        while preserving the mandated ordering around the critical transaction
-        and keeping the underlying storage encapsulated.
+        Time complexity:
+        best: O(1)
+        worst: O(1)
+        Justification: Each transaction is appended to either the queue
+        (pre-critical) or the stack (post-critical), both providing constant-time
+        insertions while maintaining the prescribed order relative to the
+        critical transaction.
         """
         if self._locked:
             raise RuntimeError("Processing line locked during iteration")
@@ -107,7 +107,14 @@ class ProcessingLine:
             self._after_stack.push(transaction)
 
     def __iter__(self):
-        """Time complexity: O(1). Locks the line and returns the iterator."""
+        """
+        Time complexity:
+        best: O(1)
+        worst: O(1)
+        Justification: Producing the iterator simply flips the processing lock
+        and hands back a lightweight iterator object without touching the stored
+        transactions.
+        """
         if self._locked:
             raise RuntimeError("Processing line already processing")
 
@@ -124,11 +131,13 @@ class _ProcessingLineIterator:
 
     def __next__(self):
         """
-        Time complexity: O(1) plus the signing cost (linear in identifier length).
-
-        Drains the before-queue first, then the critical transaction, then the
-        after-stack, keeping the most recently added neighbours closest to the
-        critical item while signing each transaction on demand.
+        Time complexity:
+        best: O(1)
+        worst: O(1 + s)
+        Justification: Serving from the queue or stack is constant time thanks to
+        their linked implementations; if the transaction is unsigned we incur an
+        extra O(s) call to `sign`, where s covers the combined identifier
+        lengths.
         """
         before_queue = self._processing_line._before_queue
         after_stack = self._processing_line._after_stack

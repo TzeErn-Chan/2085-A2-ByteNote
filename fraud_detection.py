@@ -6,11 +6,26 @@ from data_structures.array_sorted_list import ArraySortedList
 
 class FraudDetection:
     def __init__(self, transactions):
+        """
+        Time complexity:
+        best: O(1)
+        worst: O(1)
+        Justification: We keep a direct reference to the provided `ArrayR` of
+        transactions so later analyses can reuse it without copying.
+        """
         self.transactions = transactions
 
     def detect_by_blocks(self):
         """
-        Time complexity: O(N * L^2), where N is the number of transactions, L is the length of signatures, due to iterating over S and building keys.
+        Time complexity:
+        best: O(N * L^2 * log L)
+        worst: O(N * L^3 + N^2 * L^2)
+        Justification: For each block size up to the signature length L we copy
+        blocks into an `ArraySortedList` to obtain a canonical key and then scan
+        the `ArrayR` of groups to aggregate counts. Sorting blocks is sub-quadratic
+        in the favourable case and quadratic when every insertion shuffles, while
+        the group search may devolve into comparing against every previously
+        seen transaction, yielding the stated bounds.
         """
         if len(self.transactions) == 0:
             return 1, 1
@@ -46,7 +61,15 @@ class FraudDetection:
 
     def rectify(self, functions):
         """
-        Time complexity: O(F * N^2 + F * N * M), where F is the number of functions, N is the number of transactions, M is the table size, due to sorting and probing.
+        Time complexity:
+        best: O(F * N^2)
+        worst: O(F * (N^2 + N * M^2))
+        Justification: Each candidate hash function yields an `ArrayR` of N hash
+        values that we bubble sort (quadratic regardless of ordering) before
+        simulating inserts with a `LinearProbeTable`. Unique hashes exit the
+        probe loop immediately (constant work), whereas heavy collisions can
+        drive repeated lookups and wraps across the derived table range M,
+        ballooning the probing cost.
         """
         def sort_array(arr, reverse=False):
             n = len(arr)
