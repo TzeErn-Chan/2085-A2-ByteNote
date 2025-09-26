@@ -8,16 +8,17 @@ class FraudDetection:
     def __init__(self, transactions):
         """
         Time complexity:
-        best: O(1)
-        worst: O(1)
+        best: O(1), reflecting the direct reference assignment.
+        worst: O(1), identical constant work.
         """
         self.transactions = transactions
 
     def detect_by_blocks(self):
         """
         Time complexity:
-        best: O(N * L^2 * log L)
-        worst: O(N * L^3 + N^2 * L^2)
+        best: O(N * L^2 * log L), where N = len(self.transactions) and L is the common signature length.
+        worst: O(N * L^3 + N^2 * L^2), using the same N and L.
+        
         Justification: For each block size up to the signature length L we copy
         blocks into an `ArraySortedList` to obtain a canonical key and then scan
         the `ArrayR` of groups to aggregate counts. Sorting blocks is sub-quadratic
@@ -60,8 +61,9 @@ class FraudDetection:
     def rectify(self, functions):
         """
         Time complexity:
-        best: O(F * N^2)
-        worst: O(F * (N^2 + N * M^2))
+        best: O(F * N^2), where F is the number of hash functions and N the transaction count.
+        worst: O(F * (N^2 + N * M^2)), with M = max(hash values) + 1 for the active function.
+
         Justification: Each candidate hash function yields an `ArrayR` of N hash
         values that we bubble sort (quadratic regardless of ordering) before
         simulating inserts with a `LinearProbeTable`. Unique hashes exit the

@@ -20,8 +20,9 @@ class Transaction:
     def sign(self):
         """
         Time complexity:
-        best: O(u + v + t)
-        worst: O(u + v + t)
+        best: O(u + v + t), where u = len(self.from_user), v = len(self.to_user), and t is the digit count of `timestamp` when rendered as a string.
+        worst: O(u + v + t), with u, v, and t defined as above for the same transaction.
+
         Justification: We fold each character of the sender and receiver names
         and every digit of the timestamp string exactly once into a rolling
         36-bit style hash, guaranteeing a 36-character base-36 signature. The
@@ -76,8 +77,9 @@ class ProcessingLine:
     def __init__(self, critical_transaction):
         """
         Time complexity:
-        best: O(1)
-        worst: O(1)
+        best: O(1), where the bound is constant regardless of queued transactions.
+        worst: O(1), under the same constant bound.
+
         Justification: A `LinkedQueue` buffers pre-critical transactions in FIFO
         order and a `LinkedStack` buffers post-critical transactions in LIFO
         order, so both insertions and removals are constant time without
@@ -91,8 +93,9 @@ class ProcessingLine:
     def add_transaction(self, transaction):
         """
         Time complexity:
-        best: O(1)
-        worst: O(1)
+        best: O(1), because each add touches a single queue or stack node.
+        worst: O(1), with the same constant-time operations.
+
         Justification: Each transaction is appended to either the queue
         (pre-critical) or the stack (post-critical), both providing constant-time
         insertions while maintaining the prescribed order relative to the
@@ -109,8 +112,9 @@ class ProcessingLine:
     def __iter__(self):
         """
         Time complexity:
-        best: O(1)
-        worst: O(1)
+        best: O(1), as returning the iterator toggles a flag only.
+        worst: O(1), identical constant work.
+
         Justification: Producing the iterator simply flips the processing lock
         and hands back a lightweight iterator object without touching the stored
         transactions.
@@ -132,8 +136,9 @@ class _ProcessingLineIterator:
     def __next__(self):
         """
         Time complexity:
-        best: O(1)
-        worst: O(1 + s)
+        best: O(1), when the transaction already carries a signature.
+        worst: O(1 + s), where s = u + v + t for the transaction being signed (see `sign`).
+        
         Justification: Serving from the queue or stack is constant time thanks to
         their linked implementations; if the transaction is unsigned we incur an
         extra O(s) call to `sign`, where s covers the combined identifier
