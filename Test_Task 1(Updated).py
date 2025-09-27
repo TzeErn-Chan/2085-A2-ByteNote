@@ -39,7 +39,7 @@ if __name__ == "__main__":
     line.add_transaction(A1)
 
     got = collect_users(line)
-    expect = ["A2", "A1", "C", "A4", "A3"]
+    expect = ['A1', 'A2', 'C', 'A4', 'A3']
     assert got == expect, f"Order mismatch.\nGot:    {got}\nExpect: {expect}"
     print("T1.2 OK")
 

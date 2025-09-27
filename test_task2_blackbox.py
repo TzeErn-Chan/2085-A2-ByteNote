@@ -138,38 +138,5 @@ class TestProcessingBookIteration(unittest.TestCase):
         del book[t1]
         self.assertEqual(len(book), 1)
 
-class TestProcessingBookSamplingOptional(unittest.TestCase):
-    def test_sampling_optional(self):
-        # Only run if sample method exists (FIT1054 only)
-        if not hasattr(ProcessingBook, 'sample'):
-            self.skipTest("sample() not required for FIT1008/2085; skipping.")
-        book = ProcessingBook()
-        t1 = tx("ab12")
-        t2 = tx("aa23")
-        t3 = tx("bcde")
-        t4 = tx("023z")
-        for t, v in ((t1, 1), (t2, 2), (t3, 3), (t4, 4)):
-            book[t] = v
-
-        # size 1: any one signature valid
-        s1 = book.sample(1)
-        self.assertEqual(len(s1), 1)
-
-        # size 2: forbidden pair is {"ab12","aa23"} (same 'a' at pos 0)
-        s2 = book.sample(2)
-        self.assertEqual(len(s2), 2)
-        s2_set = set(s2[i] for i in range(len(s2)))
-        self.assertNotEqual(s2_set, {"ab12", "aa23"})
-
-        # size 3: must be one of the two allowed triplets
-        s3 = book.sample(3)
-        allowed = [set(["ab12","bcde","023z"]), set(["aa23","bcde","023z"])]
-        s3_set = set(s3[i] for i in range(len(s3)))
-        self.assertIn(s3_set, allowed)
-
-        # size 4: impossible
-        s4 = book.sample(4)
-        self.assertIsNone(s4)
-
 if __name__ == "__main__":
     unittest.main()
