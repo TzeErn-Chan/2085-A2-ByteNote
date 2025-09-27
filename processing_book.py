@@ -136,13 +136,13 @@ class ProcessingBook:
             if isinstance(page, ProcessingBook):
                 total += page.get_error_count()
         return total
-
+    
     def sample(self, required_size):
         """
         1054 Only - 1008/2085 welcome to attempt if you're up for a challenge, but no marks are allocated.
         Analyse your time complexity of this method.
         """
-        return None
+        pass
 
 
 if __name__ == "__main__":
