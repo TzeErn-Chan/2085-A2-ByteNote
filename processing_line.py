@@ -1,4 +1,3 @@
-from data_structures.linked_queue import LinkedQueue
 from data_structures.linked_stack import LinkedStack
 
 
@@ -77,35 +76,44 @@ class ProcessingLine:
     def __init__(self, critical_transaction):
         """
         Time complexity:
-        best: O(1), where the bound is constant regardless of queued transactions.
+        best: O(1), where the bound is constant regardless of stored transactions.
         worst: O(1), under the same constant bound.
 
-        Justification: A `LinkedQueue` buffers pre-critical transactions in FIFO
-        order and a `LinkedStack` buffers post-critical transactions in LIFO
-        order, so both insertions and removals are constant time without
-        exposing random-access mutation of the stored transactions.
+        Justification: Dedicated stacks partition the pre-critical and
+        post-critical transactions, with the former kept in timestamp-sorted
+        order and the latter operating as a simple LIFO buffer, preventing
+        external random access.
         """
         self._critical_transaction = critical_transaction
-        self._before_queue = LinkedQueue()
+        self._before_stack = LinkedStack()
         self._after_stack = LinkedStack()
         self._locked = False
 
     def add_transaction(self, transaction):
         """
         Time complexity:
-        best: O(1), because each add touches a single queue or stack node.
-        worst: O(1), with the same constant-time operations.
+        best: O(1), because inserting ahead of smaller timestamps requires no
+        reordering.
+        worst: O(b), where b is the number of stored pre-critical transactions
+        (all of which might be cycled through to maintain timestamp order).
 
-        Justification: Each transaction is appended to either the queue
-        (pre-critical) or the stack (post-critical), both providing constant-time
-        insertions while maintaining the prescribed order relative to the
-        critical transaction.
+        Justification: Pre-critical transactions are kept on a stack sorted by
+        timestamp so that closer timestamps appear nearer to the critical item,
+        while post-critical transactions remain in a simple LIFO buffer.
         """
         if self._locked:
             raise RuntimeError("Processing line locked during iteration")
 
         if transaction.timestamp <= self._critical_transaction.timestamp:
-            self._before_queue.append(transaction)
+            buffer = LinkedStack()
+            while len(self._before_stack) > 0 and \
+                    self._before_stack.peek().timestamp >= transaction.timestamp:
+                buffer.push(self._before_stack.pop())
+
+            self._before_stack.push(transaction)
+
+            while len(buffer) > 0:
+                self._before_stack.push(buffer.pop())
         else:
             self._after_stack.push(transaction)
 
@@ -139,16 +147,16 @@ class _ProcessingLineIterator:
         best: O(1), when the transaction already carries a signature.
         worst: O(1 + s), where s = u + v + t for the transaction being signed (see `sign`).
         
-        Justification: Serving from the queue or stack is constant time thanks to
+        Justification: Serving from the before-stack or after-stack is constant time thanks to
         their linked implementations; if the transaction is unsigned we incur an
         extra O(s) call to `sign`, where s covers the combined identifier
         lengths.
         """
-        before_queue = self._processing_line._before_queue
+        before_stack = self._processing_line._before_stack
         after_stack = self._processing_line._after_stack
 
-        if len(before_queue) > 0:
-            transaction = before_queue.serve()
+        if len(before_stack) > 0:
+            transaction = before_stack.pop()
         elif self._processing_line._critical_transaction is not None:
             transaction = self._processing_line._critical_transaction
             self._processing_line._critical_transaction = None

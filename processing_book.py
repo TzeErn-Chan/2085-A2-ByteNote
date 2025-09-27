@@ -166,15 +166,13 @@ class ProcessingBook:
             if isinstance(page, ProcessingBook):
                 total += page.get_error_count()
         return total
-    
+
     def sample(self, required_size):
         """
         1054 Only - 1008/2085 welcome to attempt if you're up for a challenge, but no marks are allocated.
         Time complexity:
         best: O(1), because the stub returns immediately.
         worst: O(1), same constant-time behaviour.
-        Justification: Currently unimplemented; the stub returns immediately
-        without examining the stored transactions.
         """
         return None
 

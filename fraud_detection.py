@@ -17,8 +17,8 @@ class FraudDetection:
         """
         Time complexity:
         best: O(N * L^2 * log L), where N = len(self.transactions) and L is the common signature length.
-        worst: O(N * L^3 + N^2 * L^2), using the same N and L.
-        
+        worst: O(N * L^3 + N^2 * L^2), where N = len(self.transactions) and L is the common signature length.
+
         Justification: For each block size up to the signature length L we copy
         blocks into an `ArraySortedList` to obtain a canonical key and then scan
         the `ArrayR` of groups to aggregate counts. Sorting blocks is sub-quadratic
