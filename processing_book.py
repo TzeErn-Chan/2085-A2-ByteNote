@@ -8,13 +8,8 @@ class ProcessingBook:
 
     def __init__(self, level=0):
         """
-        Time complexity:
-        best: O(1), reflecting constant-time setup of the fixed 36 pages.
-        worst: O(1), with the same bounded work.
-
-        Justification: Initialising the fixed-length `ArrayR` of 36 pages and
-        scalar counters is constant time at construction, establishing the
-        trie-like structure one layer at a time.
+        Time complexity: 
+        best/worst: O(1) as it initialises the fixed 36-page array and counters in constant time.
         """
         self.level = level
         self.pages = ArrayR(len(ProcessingBook.LEGAL_CHARACTERS))
@@ -24,25 +19,15 @@ class ProcessingBook:
     def page_index(self, character):
         """
         Time complexity:
-        best: O(1), because the alphabet size is fixed at 36 characters.
-        worst: O(1), bounded by the same constant scan.
-
-        Justification: The lookup scans at most 36 legal characters within the
-        pre-defined alphabet to translate a character into its page index.
+        best/worst: O(1) as it only scans the fixed 36-character alphabet to translate a page symbol.
         """
         return ProcessingBook.LEGAL_CHARACTERS.index(character)
     
     def __setitem__(self, transaction, amount):
         """
-        Time complexity:
-        best: O(1), when the target page is empty at this level.
-        worst: O(L), where L is the fixed signature length determining trie depth.
-        
-        Justification: We bucket each signature by successive characters in a
-        trie of nested `ProcessingBook` instances stored in fixed-size `ArrayR`
-        pages; empty slots accept inserts immediately, while collisions descend
-        at most L levels (L = signature length) before placing the tuple once the
-        prefixes diverge.
+        Time complexity: 
+        best: O(1)
+        worst: O(N) where N is the signature length as when collisions descend through at most one nested book per character before placement.
         """
         sig = transaction.signature
         idx = self.page_index(sig[self.level])
@@ -72,13 +57,9 @@ class ProcessingBook:
     
     def __getitem__(self, transaction):
         """
-        Time complexity:
-        best: O(1), when the desired tuple sits directly in the first page.
-        worst: O(L), where L is the signature length guiding the traversal.
-        Justification: Retrieval mirrors insertion: we index directly into the
-        `ArrayR` page using the next signature character and only recur while a
-        collision subtree exists, so resolution touches at most one node per
-        character.
+        Time complexity: 
+        best: O(1)
+        worst: O(N) with N the signature length as it involve a mirrors insertion, following one page per character.
         """
         sig = transaction.signature
         idx = self.page_index(sig[self.level])
@@ -96,12 +77,10 @@ class ProcessingBook:
     
     def __delitem__(self, transaction):
         """
-        Time complexity:
-        best: O(1), when removing a tuple stored directly in the current page.
-        worst: O(L), where L is the shared signature length traversed in the trie.
-        Justification: Deletion follows the same character-indexed path through
-        the trie, removing at most one node per level and collapsing a child
-        book only after scanning its 36 constant-size pages.
+        Time complexity: 
+        best: O(1)
+        worst: O(N) where N is the signature length as deletion re-traces the character-index path 
+        and collapses child books with constant scans.
         """
         sig = transaction.signature
         idx = self.page_index(sig[self.level])
@@ -126,22 +105,16 @@ class ProcessingBook:
     
     def __len__(self):
         """
-        Time complexity:
-        best: O(1), because we return the cached `total_count`.
-        worst: O(1), matching the constant-time read.
-        Justification: We maintain the current population in `total_count`, so
-        computing the size is a cached constant-time read.
+        Time complexity: 
+        best/worst: O(1) as it only returns the total_count.
         """
         return self.total_count
     
     def __iter__(self):
         """
-        Time complexity:
-        best: O(1), for creating the generator without traversal.
-        worst: O(N), where N counts the transactions reachable from this book.
-        Justification: Iteration scans the 36 fixed `ArrayR` pages in lexical
-        order and yields each stored tuple exactly once, recursing into nested
-        books so the total traversal is linear in the number of transactions.
+        Time complexity: 
+        best: O(1), as generator setup is constant
+        worst: O(N) where N is the number of stored transactions, while full traversal visits each tuple once.
         """
         for char in ProcessingBook.LEGAL_CHARACTERS:
             idx = self.page_index(char)
@@ -154,12 +127,9 @@ class ProcessingBook:
     
     def get_error_count(self):
         """
-        Time complexity:
-        best: O(1), when no nested books exist to explore.
-        worst: O(N), where N is the number of transactions across the traversed subtree.
-        Justification: We accumulate the local error counter and recursively sum
-        any nested books, so an empty page scan is constant while visiting every
-        sub-book is linear in the number of stored substructures.
+        Time complexity: 
+        best: O(1)
+        worst: O(N) where N is the number of nested ProcessingBook instances
         """
         total = self.error_count
         for page in self.pages:
@@ -170,6 +140,7 @@ class ProcessingBook:
     def sample(self, required_size):
         """
         1054 Only - 1008/2085 welcome to attempt if you're up for a challenge, but no marks are allocated.
+        Analyse your time complexity of this method.
         """
         return None
 

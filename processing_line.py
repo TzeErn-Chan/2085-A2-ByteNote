@@ -20,7 +20,7 @@ class Transaction:
         """
         Time complexity: 
         best/worst: O(u + v + t) where u = len(self.from_user), v = len(self.to_user), t = number of digits in timestamp.
-        We scan each character of the usernames and each digit of the timestamp exactly once; 
+        We scan each character of the usernames and each digit of the timestamp exactly once
         """
         hashed_value = Transaction._SEED ^ self.timestamp
         hashed_value *= Transaction._MULTIPLIER_A
@@ -69,8 +69,7 @@ class ProcessingLine:
     def __init__(self, critical_transaction):
         """
         Time complexity: 
-        best/worst: O(1) 
-        Justification: the constructor only initialises the two stacks and lock flag. 
+        best/worst: O(1) as the constructor only initialises the two stacks and lock flag. 
         """
         self._critical_transaction = critical_transaction
         self._before_stack = LinkedStack()
