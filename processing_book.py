@@ -170,9 +170,6 @@ class ProcessingBook:
     def sample(self, required_size):
         """
         1054 Only - 1008/2085 welcome to attempt if you're up for a challenge, but no marks are allocated.
-        Time complexity:
-        best: O(1), because the stub returns immediately.
-        worst: O(1), same constant-time behaviour.
         """
         return None
 
