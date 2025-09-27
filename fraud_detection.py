@@ -8,23 +8,18 @@ class FraudDetection:
     def __init__(self, transactions):
         """
         Time complexity:
-        best: O(1), reflecting the direct reference assignment.
-        worst: O(1), identical constant work.
+        best/worst: O(1) as it stores a direct reference to the provided transaction array without iteration.
         """
         self.transactions = transactions
 
     def detect_by_blocks(self):
         """
         Time complexity:
-        best: O(N * L^2 * log L), where N = len(self.transactions) and L is the common signature length.
-        worst: O(N * L^3 + N^2 * L^2), where N = len(self.transactions) and L is the common signature length.
-
-        Justification: For each block size up to the signature length L we copy
-        blocks into an `ArraySortedList` to obtain a canonical key and then scan
-        the `ArrayR` of groups to aggregate counts. Sorting blocks is sub-quadratic
-        in the favourable case and quadratic when every insertion shuffles, while
-        the group search may devolve into comparing against every previously
-        seen transaction, yielding the stated bounds.
+        best: O(N * L^2 * log L) where N = len(self.transactions) and L is the signature length.
+        worst: O(N * L^3 + N^2 * L^2) where N = len(self.transactions) and L is the signature length.
+        For each block size we sort the extracted blocks using `ArraySortedList` and linearly scan existing groups, 
+        giving quadratic costs in the favourable case and cubic-plus-quadratic behaviour when every insertion shuffles 
+        and every lookup scans all prior groups.
         """
         if len(self.transactions) == 0:
             return 1, 1
@@ -61,15 +56,10 @@ class FraudDetection:
     def rectify(self, functions):
         """
         Time complexity:
-        best: O(F * N^2), where F is the number of hash functions and N the transaction count.
-        worst: O(F * (N^2 + N * M^2)), with M = max(hash values) + 1 for the active function.
-
-        Justification: Each candidate hash function yields an `ArrayR` of N hash
-        values that we bubble sort (quadratic regardless of ordering) before
-        simulating inserts with a `LinearProbeTable`. Unique hashes exit the
-        probe loop immediately (constant work), whereas heavy collisions can
-        drive repeated lookups and wraps across the derived table range M,
-        ballooning the probing cost.
+        best: O(F * N^2) where F is the number of candidate hash functions and N the transaction count.
+        worst: O(F * (N^2 + N * M^2)) where F is the number of candidate hash functions and N the transaction count, M = max hash value + 1 for the function.
+        For each function we bubble-sort the hashes (quadratic) and simulate linear probing, which stays constant per insert when slots are free 
+        but can wrap the table repeatedly under heavy collisions.
         """
         def sort_array(arr, reverse=False):
             n = len(arr)
