@@ -18,16 +18,9 @@ class Transaction:
     
     def sign(self):
         """
-        Time complexity:
-        best: O(u + v + t), where u = len(self.from_user), v = len(self.to_user), and t is the digit count of `timestamp` when rendered as a string.
-        worst: O(u + v + t), with u, v, and t defined as above for the same transaction.
-
-        Justification: We fold each character of the sender and receiver names
-        and every digit of the timestamp string exactly once into a rolling
-        36-bit style hash, guaranteeing a 36-character base-36 signature. The
-        fixed-length signature (36^36 span) ensures negligible collision risk
-        while the rolling hash never stores the raw data beyond the running
-        integer.
+        Time complexity: 
+        best/worst: O(u + v + t) where u = len(self.from_user), v = len(self.to_user), t = number of digits in timestamp.
+        We scan each character of the usernames and each digit of the timestamp exactly once; 
         """
         hashed_value = Transaction._SEED ^ self.timestamp
         hashed_value *= Transaction._MULTIPLIER_A
@@ -75,14 +68,9 @@ class Transaction:
 class ProcessingLine:
     def __init__(self, critical_transaction):
         """
-        Time complexity:
-        best: O(1), where the bound is constant regardless of stored transactions.
-        worst: O(1), under the same constant bound.
-
-        Justification: Dedicated stacks partition the pre-critical and
-        post-critical transactions, with the former kept in timestamp-sorted
-        order and the latter operating as a simple LIFO buffer, preventing
-        external random access.
+        Time complexity: 
+        best/worst: O(1) 
+        Justification: the constructor only initialises the two stacks and lock flag. 
         """
         self._critical_transaction = critical_transaction
         self._before_stack = LinkedStack()
@@ -91,15 +79,9 @@ class ProcessingLine:
 
     def add_transaction(self, transaction):
         """
-        Time complexity:
-        best: O(1), because inserting ahead of smaller timestamps requires no
-        reordering.
-        worst: O(b), where b is the number of stored pre-critical transactions
-        (all of which might be cycled through to maintain timestamp order).
-
-        Justification: Pre-critical transactions are kept on a stack sorted by
-        timestamp so that closer timestamps appear nearer to the critical item,
-        while post-critical transactions remain in a simple LIFO buffer.
+        Time complexity: 
+        best: O(1) when the new timestamp is latest before the critical item
+        worst: O(n) where n is the count of pre-critical transactions, as this may cycled through to keep the stack ordered.
         """
         if self._locked:
             raise RuntimeError("Processing line locked during iteration")
@@ -119,13 +101,8 @@ class ProcessingLine:
 
     def __iter__(self):
         """
-        Time complexity:
-        best: O(1), as returning the iterator toggles a flag only.
-        worst: O(1), identical constant work.
-
-        Justification: Producing the iterator simply flips the processing lock
-        and hands back a lightweight iterator object without touching the stored
-        transactions.
+        Time complexity: 
+        best/worst: O(1) since we only check the lock and return.
         """
         if self._locked:
             raise RuntimeError("Processing line already processing")
@@ -143,14 +120,10 @@ class _ProcessingLineIterator:
 
     def __next__(self):
         """
-        Time complexity:
-        best: O(1), when the transaction already carries a signature.
-        worst: O(1 + s), where s = u + v + t for the transaction being signed (see `sign`).
-        
-        Justification: Serving from the before-stack or after-stack is constant time thanks to
-        their linked implementations; if the transaction is unsigned we incur an
-        extra O(s) call to `sign`, where s covers the combined identifier
-        lengths.
+        Time complexity: 
+        best: O(1) when the transaction is already signed
+        worst: O(1 + U + V + T) where u = len(self.from_user), v = len(self.to_user), t = number of digits in timestamp
+        because we may need to call 'sign' once while pop and push the remain constand time.
         """
         before_stack = self._processing_line._before_stack
         after_stack = self._processing_line._after_stack
